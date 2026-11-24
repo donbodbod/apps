@@ -1,0 +1,114 @@
+{{- $domains := .Values.domain | default dict -}}
+{{- $entrance := get $domains "sabnzbd" | default "localhost" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sabnzbd
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.workloads.sabnzbd.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sabnzbd
+  template:
+    metadata:
+      labels:
+        app: sabnzbd
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: initialize-storage
+          image: beclab/aboveos-busybox:1.37.0
+          command:
+            - sh
+            - -ec
+            - |
+              mkdir -p /config /downloads/incomplete /downloads/complete /downloads/watched
+              if [ ! -f /config/sabnzbd.ini ]; then
+                umask 077
+                cat > /config/sabnzbd.ini <<EOF
+              [misc]
+              host = 0.0.0.0
+              port = 8080
+              host_whitelist = $SAB_DOMAINS
+              inet_exposure = 4
+              cache_limit = 256M
+              download_dir = /downloads/incomplete
+              complete_dir = /downloads/complete
+              dirscan_dir = /downloads/watched
+              permissions = 0775
+              EOF
+              fi
+              # The private Olares entrance provides authentication for browser access.
+              # Apply once, then preserve subsequent user security preferences.
+              if [ ! -f /config/.olares-bootstrap-complete ]; then
+                sed -i 's/^inet_exposure = .*/inet_exposure = 4/' /config/sabnzbd.ini
+                touch /config/.olares-bootstrap-complete
+              fi
+              chown 1000:1000 /config /config/sabnzbd.ini /downloads /downloads/incomplete /downloads/complete /downloads/watched
+          env:
+            - name: SAB_DOMAINS
+              value: {{ $entrance | replace "https://" "" | replace "http://" "" | trimSuffix "/" | quote }}
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+      containers:
+        - name: sabnzbd
+          image: '{{ .Values.image.repository }}:{{ .Values.image.tag }}'
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUID
+              value: '1000'
+            - name: PGID
+              value: '1000'
+            - name: TZ
+              value: Etc/UTC
+          ports:
+            - name: http
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: '4'
+              memory: 2Gi
+          startupProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            periodSeconds: 30
+            failureThreshold: 5
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+      volumes:
+        - name: config
+          hostPath:
+            path: {{ .Values.userspace.appData }}/config
+            type: DirectoryOrCreate
+        - name: downloads
+          hostPath:
+            path: {{ .Values.userspace.userData }}/Downloads/SABnzbd
+            type: DirectoryOrCreate
