@@ -10,7 +10,7 @@ Package 0.1.1 passes the official Olares chart checks and is installed on a live
 
 ![SABnzbd setup on Olares](docs/screenshots/setup.jpg)
 
-The screenshot shows the actual installed application before entering any provider credentials.
+The screenshot shows the actual installed application before entering any provider credentials.  
 
 ## Storage and memory
 
