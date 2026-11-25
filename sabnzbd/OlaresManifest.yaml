@@ -7,7 +7,7 @@ metadata:
   title: SABnzbd
   description: Automated Usenet downloader with repair, unpacking and a web interface
   version: 0.1.1
-  icon: https://raw.githubusercontent.com/sabnzbd/sabnzbd/master/icons/logo-arrow.svg
+  icon: https://raw.githubusercontent.com/donbodbod/apps/168b574673b5b41c1aff82838b3b618dd65cb85c/sabnzbd/docs/screenshots/icon.png
   categories:
     - Utilities_v112
     - homelab
@@ -16,7 +16,7 @@ entrances:
     title: SABnzbd
     host: sabnzbd
     port: 8080
-    icon: https://raw.githubusercontent.com/sabnzbd/sabnzbd/master/icons/logo-arrow.svg
+    icon: https://raw.githubusercontent.com/donbodbod/apps/168b574673b5b41c1aff82838b3b618dd65cb85c/sabnzbd/docs/screenshots/icon.png
     authLevel: private
     openMethod: window
 workloadReplicas:
@@ -27,6 +27,10 @@ permission:
     - Home/Downloads/SABnzbd
 spec:
   versionName: '5.1.3'
+  featuredImage: https://raw.githubusercontent.com/donbodbod/apps/168b574673b5b41c1aff82838b3b618dd65cb85c/sabnzbd/docs/screenshots/queue.jpg
+  promoteImage:
+    - https://raw.githubusercontent.com/donbodbod/apps/168b574673b5b41c1aff82838b3b618dd65cb85c/sabnzbd/docs/screenshots/queue.jpg
+    - https://raw.githubusercontent.com/donbodbod/apps/168b574673b5b41c1aff82838b3b618dd65cb85c/sabnzbd/docs/screenshots/setup.jpg
   developer: The SABnzbd Team
   submitter: donbodbod
   website: https://sabnzbd.org/
